@@ -21,6 +21,7 @@ func getStdin(std io.Reader) string {
 
 func getStdinHandler(headers []string, std io.Reader) func(http.ResponseWriter, *http.Request) {
 	content := getStdin(std)
+	fmt.Fprintf(os.Stderr, "... serving %d chars\n", len(content))
 	return func(resp http.ResponseWriter, req *http.Request) {
 		for name, value := range getHeaders(headers) {
 			resp.Header().Set(name, value)
