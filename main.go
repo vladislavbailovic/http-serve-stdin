@@ -20,13 +20,14 @@ func getStdin(std io.Reader) string {
 }
 
 func getStdinHandler(headers []string, std io.Reader) func(http.ResponseWriter, *http.Request) {
+	content := getStdin(std)
 	return func(resp http.ResponseWriter, req *http.Request) {
 		for name, value := range getHeaders(headers) {
 			resp.Header().Set(name, value)
 		}
 		resp.WriteHeader(http.StatusOK)
 
-		fmt.Fprintf(resp, getStdin(std))
+		fmt.Fprintf(resp, content)
 	}
 }
 
