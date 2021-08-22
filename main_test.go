@@ -63,6 +63,30 @@ func TestParseHeadersReturnsHeadersMap(t *testing.T) {
 	}
 }
 
+func TestGetHeadersReturnsHeadersMap(t *testing.T) {
+	test := []string{
+		"Server: in2http",
+		"whatevers: Has:Some:Colons",
+	}
+	expected := map[string]string{
+		"content-type": getDefaultHeaders()["content-type"],
+		"server":       "in2http",
+		"whatevers":    "Has:Some:Colons",
+	}
+
+	headers := getHeaders(test)
+	for name, value := range expected {
+		actual, ok := headers[name]
+		if !ok {
+			t.Fatalf("expected header {%s} to be parsed, it wasn't", name)
+		}
+
+		if value != actual {
+			t.Fatalf("expected header {%s} to be {%s} - got {%s} instead", name, value, actual)
+		}
+	}
+}
+
 func TestStdinHandlerResponse(t *testing.T) {
 	expected := "Hello there"
 	expectedReader := strings.NewReader(expected)

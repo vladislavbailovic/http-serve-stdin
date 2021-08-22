@@ -49,6 +49,14 @@ func getParsedHeaders(raw []string) map[string]string {
 	return headers
 }
 
+func getHeaders(raw []string) map[string]string {
+	headers := getDefaultHeaders()
+	for name, value := range getParsedHeaders(raw) {
+		headers[name] = value
+	}
+	return headers
+}
+
 func serveStdin(port int, std io.Reader) {
 	http.HandleFunc("/", getStdinHandler(std))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
