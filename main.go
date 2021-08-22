@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func getStdin(std io.Reader) string {
@@ -32,6 +33,20 @@ func getDefaultHeaders() map[string]string {
 	return map[string]string{
 		"content-type": "text/plain; charset=utf-8",
 	}
+}
+
+func getParsedHeaders(raw []string) map[string]string {
+	headers := make(map[string]string)
+	for _, rawHeader := range raw {
+		splits := strings.Split(rawHeader, ":")
+		if len(splits) < 2 {
+			continue
+		}
+		name := strings.ToLower(strings.TrimSpace(splits[0]))
+		value := strings.TrimSpace(strings.Join(splits[1:], ":"))
+		headers[name] = value
+	}
+	return headers
 }
 
 func serveStdin(port int, std io.Reader) {
