@@ -87,6 +87,39 @@ func TestGetHeadersReturnsHeadersMap(t *testing.T) {
 	}
 }
 
+func TestGetParsedFlagsReturnDefaultsWithNoFlagsPassed(t *testing.T) {
+	port, headers := getParsedFlags([]string{})
+	if port != 8080 {
+		t.Fatalf("expected port to be {%d} by default, got {%d}", 8080, port)
+	}
+
+	if len(headers) != 0 {
+		t.Fatalf("expected headers to be empty, but they aren't: {%s}", strings.Join(headers, "|"))
+	}
+}
+
+func TestGetParsedFlagsReturnPortIfSet(t *testing.T) {
+	port1, _ := getParsedFlags([]string{"-p", "666"})
+	if port1 != 666 {
+		t.Fatalf("expected port to be {%d} by default, got {%d}", 666, port1)
+	}
+	port2, _ := getParsedFlags([]string{"--port", "667"})
+	if port2 != 667 {
+		t.Fatalf("expected port to be {%d} by default, got {%d}", 667, port2)
+	}
+}
+
+func TestGetParsedFlagsReturnHeadersIfSet(t *testing.T) {
+	_, h1 := getParsedFlags([]string{"-h", "content-type: text/html"})
+	if h1[0] != "content-type: text/html" {
+		t.Fatalf("expected port to be {%s} by default, got {%s}", "content-type: text/html", h1)
+	}
+	_, h2 := getParsedFlags([]string{"--header", "content-type: application/json"})
+	if h2[0] != "content-type: application/json" {
+		t.Fatalf("expected port to be {%s} by default, got {%s}", "content-type: application/json", h2)
+	}
+}
+
 func TestStdinHandlerResponse(t *testing.T) {
 	expected := "Hello there"
 	expectedReader := strings.NewReader(expected)

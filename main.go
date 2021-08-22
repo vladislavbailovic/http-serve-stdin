@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -57,11 +58,49 @@ func getHeaders(raw []string) map[string]string {
 	return headers
 }
 
+type headerFlags []string
+
+func (h headerFlags) String() string {
+	return strings.Join(h, "|")
+}
+func (h *headerFlags) Set(value string) error {
+	*h = append(*h, value)
+	return nil
+}
+
+func getParsedFlags(cliFlags []string) (int, []string) {
+	var port int
+	var showUsage bool
+	var headers headerFlags
+
+	flags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	flags.BoolVar(&showUsage, "help", false, "show this help")
+
+	flags.IntVar(&port, "port", 8080, "serve on this port")
+	flags.IntVar(&port, "p", 8080, "serve on this port")
+
+	flags.Var(&headers, "header", "additional header(s)")
+	flags.Var(&headers, "h", "additional header(s)")
+
+	err := flags.Parse(cliFlags)
+	if err != nil {
+		panic(err)
+	}
+
+	if showUsage {
+		flags.Usage()
+		os.Exit(0)
+	}
+
+	return port, headers
+}
+
 func serveStdin(port int, std io.Reader) {
 	http.HandleFunc("/", getStdinHandler(std))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
 
 func main() {
-	serveStdin(8080, os.Stdin)
+	port, _ := getParsedFlags(os.Args[1:])
+	serveStdin(port, os.Stdin)
 }
