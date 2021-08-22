@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 )
 
@@ -15,7 +17,13 @@ func getStdin(std io.Reader) string {
 	return string(stdin)
 }
 
+func getStdinHandler(std io.Reader) func(http.ResponseWriter, *http.Request) {
+	return func(resp http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(resp, getStdin(std))
+	}
+}
+
 func main() {
-	stdin := getStdin(os.Stdin)
-	fmt.Println("got", stdin)
+	http.HandleFunc("/", getStdinHandler(os.Stdin))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
