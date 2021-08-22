@@ -19,9 +19,9 @@ func getStdin(std io.Reader) string {
 	return string(stdin)
 }
 
-func getStdinHandler(std io.Reader) func(http.ResponseWriter, *http.Request) {
+func getStdinHandler(headers []string, std io.Reader) func(http.ResponseWriter, *http.Request) {
 	return func(resp http.ResponseWriter, req *http.Request) {
-		for name, value := range getDefaultHeaders() {
+		for name, value := range getHeaders(headers) {
 			resp.Header().Set(name, value)
 		}
 		resp.WriteHeader(http.StatusOK)
@@ -95,12 +95,12 @@ func getParsedFlags(cliFlags []string) (int, []string) {
 	return port, headers
 }
 
-func serveStdin(port int, std io.Reader) {
-	http.HandleFunc("/", getStdinHandler(std))
+func serveStdin(port int, headers []string, std io.Reader) {
+	http.HandleFunc("/", getStdinHandler(headers, std))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
 
 func main() {
-	port, _ := getParsedFlags(os.Args[1:])
-	serveStdin(port, os.Stdin)
+	port, headers := getParsedFlags(os.Args[1:])
+	serveStdin(port, headers, os.Stdin)
 }

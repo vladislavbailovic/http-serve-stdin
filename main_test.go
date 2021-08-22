@@ -130,7 +130,7 @@ func TestStdinHandlerResponse(t *testing.T) {
 	}
 
 	recorder := httptest.NewRecorder()
-	handler := http.HandlerFunc(getStdinHandler(expectedReader))
+	handler := http.HandlerFunc(getStdinHandler([]string{}, expectedReader))
 	handler.ServeHTTP(recorder, req)
 
 	if actual := recorder.Body.String(); actual != expected {
@@ -149,7 +149,7 @@ func TestStdinIsServedWithDefaultHeaders(t *testing.T) {
 	}
 
 	recorder := httptest.NewRecorder()
-	handler := http.HandlerFunc(getStdinHandler(expectedReader))
+	handler := http.HandlerFunc(getStdinHandler([]string{}, expectedReader))
 	handler.ServeHTTP(recorder, req)
 
 	if status := recorder.Code; status != http.StatusOK {
@@ -160,5 +160,38 @@ func TestStdinIsServedWithDefaultHeaders(t *testing.T) {
 	if contentType := recorder.Header().Get("Content-Type"); contentType != getDefaultHeaders()["content-type"] {
 		t.Log(recorder.Header())
 		t.Fatalf("expected {%s} content type, got {%s} instead", getDefaultHeaders()["content-type"], contentType)
+	}
+}
+
+func TestStdinIsServedWithCustomHeaders(t *testing.T) {
+	expected := ""
+	expectedReader := strings.NewReader(expected)
+	headers := []string{
+		"content-type: text/html",
+		"server: in2http",
+	}
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	recorder := httptest.NewRecorder()
+	handler := http.HandlerFunc(getStdinHandler(headers, expectedReader))
+	handler.ServeHTTP(recorder, req)
+
+	if status := recorder.Code; status != http.StatusOK {
+		t.Log(recorder)
+		t.Fatalf("expected success requesting stdin, got %d instead", recorder.Code)
+	}
+
+	if contentType := recorder.Header().Get("Content-Type"); contentType != "text/html" {
+		t.Log(recorder.Header())
+		t.Fatalf("expected {%s} content type, got {%s} instead", "text/html", contentType)
+	}
+
+	if server := recorder.Header().Get("Server"); server != "in2http" {
+		t.Log(recorder.Header())
+		t.Fatalf("expected {%s} server, got {%s} instead", "in2http", server)
 	}
 }
